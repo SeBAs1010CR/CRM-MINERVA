@@ -24,7 +24,7 @@ export async function loginAction(_prev: ActionState, formData: FormData): Promi
   if (!valid) { await dummyVerify(); return { error: 'Correo o contraseña incorrectos' }; }
   await createSession(user.id);
   await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
-  return { ok: 'ok' };
+  return { ok: 'Inicio de sesión exitoso' };
 }
 
 const forgotSchema = z.object({ email: z.string().trim().toLowerCase().email('Correo inválido') });

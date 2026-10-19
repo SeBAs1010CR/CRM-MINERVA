@@ -1,13 +1,28 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
+import Link, { useLinkStatus } from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { LogoutButton } from './logout-button';
 
 export type NavItem = { href: string; label: string };
+
+/**
+ * Indicador que aparece en el enlace en cuanto se hace clic, mientras Next.js
+ * navega a la siguiente pantalla. Debe vivir dentro de un `<Link>`.
+ */
+function NavPending() {
+  const { pending } = useLinkStatus();
+  if (!pending) return null;
+  return (
+    <span
+      aria-hidden="true"
+      className="h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent"
+    />
+  );
+}
 
 /**
  * Estructura del CRM: header rojo de ancho completo arriba y menú oscuro a la
@@ -18,11 +33,15 @@ export function AppShell({
   items,
   userName,
   userRole,
+  mostrarConfiguracion,
+  version,
   children,
 }: {
   items: NavItem[];
   userName: string;
   userRole: string;
+  mostrarConfiguracion?: boolean;
+  version?: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -50,17 +69,60 @@ export function AppShell({
             onClick={() => setMenuAbierto(false)}
             aria-current={activo ? 'page' : undefined}
             className={cn(
-              'rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors',
+              'flex items-center justify-between gap-2 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors',
               activo
                 ? 'border-minerva-red bg-neutral-800 text-minerva-white'
                 : 'border-transparent text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100',
             )}
           >
-            {item.label}
+            <span>{item.label}</span>
+            <NavPending />
           </Link>
         );
       })}
     </nav>
+  );
+
+  // Pie del menú: acceso a configuración con la ruedita y la firma del sistema.
+  const pie = (
+    <div className="mt-auto border-t border-neutral-800 p-3">
+      {mostrarConfiguracion && (
+        <Link
+          href="/configuracion"
+          onClick={() => setMenuAbierto(false)}
+          className={cn(
+            'mb-3 flex items-center justify-between gap-2 rounded-md border-l-2 px-3 py-2 text-sm font-medium transition-colors',
+            pathname.startsWith('/configuracion') || pathname.startsWith('/usuarios/roles')
+              ? 'border-minerva-red bg-neutral-800 text-minerva-white'
+              : 'border-transparent text-neutral-400 hover:bg-neutral-800 hover:text-neutral-100',
+          )}
+        >
+          <span className="flex items-center gap-2">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+            Configuración
+          </span>
+          <NavPending />
+        </Link>
+      )}
+      <p className="text-xs leading-relaxed text-neutral-500">
+        Minerva CRM{version ? ` v${version}` : ''}
+        <br />
+        Desarrollado por savlabscr.com
+      </p>
+    </div>
   );
 
   return (
@@ -112,13 +174,7 @@ export function AppShell({
 
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col bg-neutral-900 pt-14 lg:flex">
         {enlaces}
-        <div className="mt-auto p-4">
-          <p className="text-xs leading-relaxed text-neutral-500">
-            Minerva CRM
-            <br />
-            Implementado por savlabscr.com
-          </p>
-        </div>
+        {pie}
       </aside>
 
       {menuAbierto && (
@@ -137,6 +193,7 @@ export function AppShell({
             className="absolute inset-y-0 left-0 flex w-72 flex-col bg-neutral-900 pt-14 shadow-xl"
           >
             {enlaces}
+            {pie}
           </div>
         </div>
       )}
@@ -147,7 +204,7 @@ export function AppShell({
         <footer className="border-t border-minerva-border bg-minerva-white">
           <div className="px-4 py-4 sm:px-6 lg:px-10">
             <p className="text-xs text-minerva-muted">
-              Minerva CRM · Implementado por{' '}
+              Minerva CRM · Desarrollado por{' '}
               <a
                 href="https://www.savlabscr.com"
                 target="_blank"

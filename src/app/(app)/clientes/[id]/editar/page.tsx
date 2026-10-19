@@ -36,6 +36,8 @@ export default async function EditarClientePage({ params }: PageProps<'/clientes
             email: client.email,
             website: client.website,
             address: client.address,
+            country: client.country,
+            sector: client.sector,
             notes: client.notes,
           }}
         />

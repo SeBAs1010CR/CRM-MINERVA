@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react';
 import { createClientAction, updateClientAction, type ActionState } from './actions.server';
 import { Field, FormMessage, SelectField, SubmitButton, TextareaField } from '@/components/form';
 import { CLIENT_TYPE_LABELS, IDENTIFICATION_TYPE_LABELS, toOptions } from '@/lib/labels';
+import { SECTORES, PAISES } from '@/lib/sectores';
 import { ClientType, IdentificationType } from '@/generated/prisma/enums';
 
 /**
@@ -38,6 +39,8 @@ export type ClientFormValues = {
   email: string | null;
   website: string | null;
   address: string | null;
+  country: string | null;
+  sector: string | null;
   notes: string | null;
 };
 
@@ -129,6 +132,24 @@ export function ClientForm({ client }: { client?: ClientFormValues }) {
             placeholder="San José, Rohrmoser, Av. Central, km 4"
           />
         </div>
+
+        <Field
+          label="País"
+          name="country"
+          required={false}
+          options={PAISES}
+          defaultValue={client?.country ?? ''}
+          placeholder="Costa Rica"
+        />
+        <Field
+          label="Sector"
+          name="sector"
+          required={false}
+          options={SECTORES}
+          defaultValue={client?.sector ?? ''}
+          placeholder="Salud"
+          hint="Sugerencias según el catálogo; podés escribir otro."
+        />
 
         <div className="sm:col-span-2">
           <TextareaField label="Notas" name="notes" rows={5} defaultValue={client?.notes ?? ''} />

@@ -1,5 +1,6 @@
 import { requireUser, userHas } from '@/lib/auth/guards';
 import { AppShell, type NavItem } from '@/components/app-shell';
+import { APP_VERSION } from '@/lib/version';
 
 export default async function AppLayout({ children }: LayoutProps<'/'>) {
   const user = await requireUser();
@@ -14,17 +15,11 @@ export default async function AppLayout({ children }: LayoutProps<'/'>) {
   if (userHas(user, 'products:read')) {
     items.push({ href: '/productos', label: 'Productos' });
   }
-  if (userHas(user, 'products:write')) {
-    items.push({ href: '/configuracion/unidades', label: 'Unidades de medida' });
-  }
   if (userHas(user, 'opportunities:read')) {
     items.push(
       { href: '/oportunidades', label: 'Oportunidades' },
       { href: '/pipeline', label: 'Pipeline' },
     );
-  }
-  if (userHas(user, 'stages:manage')) {
-    items.push({ href: '/configuracion/etapas', label: 'Etapas' });
   }
   if (userHas(user, 'activities:read')) {
     items.push({ href: '/actividades', label: 'Actividades' });
@@ -35,26 +30,27 @@ export default async function AppLayout({ children }: LayoutProps<'/'>) {
   if (userHas(user, 'reports:read')) {
     items.push({ href: '/reportes', label: 'Reportes' });
   }
-  if (userHas(user, 'activityTypes:manage')) {
-    items.push({ href: '/configuracion/tipos-actividad', label: 'Tipos de actividad' });
-  }
-  if (userHas(user, 'settings:manage')) {
-    items.push({ href: '/configuracion/empresa', label: 'Empresa' });
-  }
   if (userHas(user, 'users:manage')) {
     items.push({ href: '/usuarios', label: 'Usuarios' });
   }
-  // RF-009/RF-010: la administración de roles es solo del rol Administrador.
-  if (user.role.isAdmin) {
-    items.push({ href: '/usuarios/roles', label: 'Roles y permisos' });
-  }
   items.push({ href: '/perfil', label: 'Mi perfil' });
+
+  // La ruedita de configuración agrupa los ajustes del sistema; se muestra si
+  // el usuario tiene permiso sobre al menos una de sus secciones.
+  const mostrarConfiguracion =
+    userHas(user, 'settings:manage') ||
+    userHas(user, 'products:write') ||
+    userHas(user, 'stages:manage') ||
+    userHas(user, 'activityTypes:manage') ||
+    user.role.isAdmin;
 
   return (
     <AppShell
       items={items}
       userName={`${user.firstName} ${user.lastName}`}
       userRole={user.role.name}
+      mostrarConfiguracion={mostrarConfiguracion}
+      version={APP_VERSION}
     >
       {children}
     </AppShell>

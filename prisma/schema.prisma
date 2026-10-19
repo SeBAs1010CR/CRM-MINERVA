@@ -147,6 +147,9 @@ model Client {
   email String? @db.VarChar(191)
   website String? @db.VarChar(191)
   address String? @db.VarChar(255)
+  // Clasificación de la cartera: país y sector del cliente.
+  country String? @db.VarChar(100)
+  sector  String? @db.VarChar(150)
   // RF-018: notas
   notes String? @db.Text
   // RF-021
@@ -167,6 +170,9 @@ model Client {
   @@index([type, isActive])
   @@index([email])
   @@index([isActive, createdAt])
+  // Filtros de cartera
+  @@index([sector])
+  @@index([country])
   @@map("clients")
 }
 

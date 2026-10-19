@@ -40,6 +40,8 @@ const clientSchema = z.object({
     }),
   website: optionalText(191),
   address: optionalText(255),
+  country: optionalText(100),
+  sector: optionalText(150),
   notes: optionalText(10_000),
 });
 
@@ -54,6 +56,8 @@ function readClientForm(formData: FormData) {
     email: text('email'),
     website: text('website'),
     address: text('address'),
+    country: text('country'),
+    sector: text('sector'),
     notes: text('notes'),
   };
 }

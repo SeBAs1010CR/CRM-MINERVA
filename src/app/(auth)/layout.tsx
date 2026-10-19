@@ -1,31 +1,54 @@
 import Image from 'next/image';
-import Link from 'next/link';
 
 export default function AuthLayout({ children }: LayoutProps<'/'>) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-100 px-4 py-12">
-      <div className="w-full max-w-sm">
-        <div className="mb-8 flex flex-col items-center text-center">
+    <div className="flex min-h-screen">
+      {/* Columna izquierda: fondo de edificios, logo arriba y formulario debajo. */}
+      <div className="relative flex w-full flex-col lg:w-1/2">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-neutral-900 bg-cover bg-center"
+          style={{ backgroundImage: "url('/fondo/edificios.jpg')" }}
+        />
+        <div aria-hidden="true" className="absolute inset-0 bg-black/50" />
+
+        <div className="relative flex flex-1 flex-col items-center justify-start px-6 py-12 lg:pt-20">
           <Image
-            src="/marca/minerva-logo-horizontal.png"
+            src="/marca/minerva-logo-horizontal-blanco.png"
             alt="Minerva Consultores"
             width={490}
             height={132}
-            className="mb-4 h-12 w-auto"
+            className="h-16 w-auto lg:h-20"
             priority
           />
-          <p className="text-sm text-minerva-muted">Sistema CRM</p>
+          <div className="mt-8 w-full max-w-md">
+            <p className="mb-4 text-center text-base text-minerva-white/90">Sistema CRM</p>
+            <div className="rounded-lg border border-minerva-border bg-minerva-white p-8 shadow-lg">
+              {children}
+            </div>
+          </div>
         </div>
 
-        <div className="rounded-lg border border-minerva-border bg-minerva-white p-6 shadow-sm">
-          {children}
-        </div>
-
-        <p className="mt-6 text-center text-xs text-minerva-muted">
-          <Link href="/" className="hover:text-minerva-red">
+        <footer className="relative px-6 pb-6 text-xs text-minerva-white/80">
+          Desarrollado e implementado por{' '}
+          <a
+            href="https://www.savlabscr.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-minerva-red"
+          >
             savlabscr.com
-          </Link>
-        </p>
+          </a>
+        </footer>
+      </div>
+
+      {/* Columna derecha: fondo del formulario. */}
+      <div className="relative hidden w-1/2 lg:flex">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 bg-black bg-cover bg-center"
+          style={{ backgroundImage: "url('/fondo/fondo-form.jpg')" }}
+        />
       </div>
     </div>
   );

@@ -98,6 +98,8 @@ export default async function ClientePage({ params }: PageProps<'/clientes/[id]'
             <Dato label="Teléfono">{cliente.phone ?? '—'}</Dato>
             <Dato label="Correo">{cliente.email ?? '—'}</Dato>
             <Dato label="Sitio web">{cliente.website ?? '—'}</Dato>
+            <Dato label="País">{cliente.country ?? '—'}</Dato>
+            <Dato label="Sector">{cliente.sector ?? '—'}</Dato>
             <Dato label="Dirección" ancho>
               {cliente.address ?? '—'}
             </Dato>

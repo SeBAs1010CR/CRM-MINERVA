@@ -10,8 +10,11 @@ export default function LoginPage() {
   const router = useRouter();
   const [state, action, pending] = useActionState<ActionState, FormData>(loginAction, {});
 
+  // Mostramos el mensaje de éxito un instante antes de entrar al panel.
   useEffect(() => {
-    if (state.ok) router.push('/dashboard');
+    if (!state.ok) return;
+    const t = setTimeout(() => router.push('/dashboard'), 900);
+    return () => clearTimeout(t);
   }, [state.ok, router]);
 
   return (
