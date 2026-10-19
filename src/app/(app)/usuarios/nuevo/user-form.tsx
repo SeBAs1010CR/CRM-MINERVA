@@ -22,7 +22,7 @@ export function CreateUserForm({ roles }: { roles: RoleOption[] }) {
           name="email"
           type="email"
           autoComplete="off"
-          placeholder="nombre@minerva.cr"
+          placeholder="usuario@minervaconsultores.com"
         />
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Teléfono" name="phone" type="tel" required={false} placeholder="+506 8000 0000" />

@@ -42,6 +42,9 @@ function EditDataForm({
   return (
     <form action={action} className="space-y-5">
       <input type="hidden" name="id" value={user.id} />
+      {/* Un select deshabilitado no se envía: sin este hidden el submit mandaría
+          roleId = null y la action fallaría con "expected string, received null". */}
+      {isSelf && <input type="hidden" name="roleId" value={user.roleId} />}
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label="Nombre" name="firstName" defaultValue={user.firstName} />
         <Field label="Apellido" name="lastName" defaultValue={user.lastName} />

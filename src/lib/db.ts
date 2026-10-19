@@ -6,28 +6,16 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-/**
- * El pool lo crea el driver `mariadb`, no `mysql2`: el adaptador despacha sobre
- * la API de mariadb y con un pool ajeno toda query revienta con
- * "Expected zero or one element". Le pasamos la config y el adaptador queda
- * dueño del pool, así $disconnect() lo cierra en serverless.
- *
- * TiDB Serverless exige TLS: se activa con DATABASE_TLS=true o ?tls=true en la URL.
- */
 function buildPoolConfig(): PoolConfig {
   const raw = process.env.DATABASE_URL;
-  if (!raw) {
-    throw new Error('DATABASE_URL no está definida');
-  }
+  if (!raw) throw new Error('DATABASE_URL no está definida');
 
   const url = new URL(raw);
   const database = url.pathname.replace(/^\//, '');
-  if (!database) {
-    throw new Error('DATABASE_URL no incluye el nombre de la base de datos');
-  }
+  if (!database) throw new Error('DATABASE_URL no incluye el nombre de la base de datos');
 
-  const useTls =
-    process.env.DATABASE_TLS === 'true' || url.searchParams.get('tls') === 'true';
+  const useTls = process.env.DATABASE_TLS === 'true' || url.searchParams.get('tls') === 'true';
+  const isProd = process.env.NODE_ENV === 'production';
 
   const config: PoolConfig = {
     host: url.hostname,
@@ -35,18 +23,18 @@ function buildPoolConfig(): PoolConfig {
     user: decodeURIComponent(url.username),
     password: decodeURIComponent(url.password),
     database,
-    // Vercel corre varias instancias en paralelo; un pool grande por instancia
-    // agota los límites de conexiones del cluster.
-    connectionLimit: Number(process.env.DATABASE_POOL_LIMIT ?? 5),
-    connectTimeout: 10_000,
+    connectionLimit: Number(process.env.DATABASE_POOL_LIMIT ?? (isProd ? 10 : 5)),
+    connectTimeout: 30_000,
+    acquireTimeout: 30_000,
+    idleTimeout: 60_000,
+    bigNumberStrings: false,
+    supportBigNumbers: true,
   };
 
   if (useTls) {
     const rejectUnauthorized = process.env.DATABASE_TLS_REJECT_UNAUTHORIZED === 'true';
     if (!rejectUnauthorized) {
-      console.warn(
-        '[db] TLS activo sin verificar el certificado. Si tu servidor tiene un CA válido, poné DATABASE_TLS_REJECT_UNAUTHORIZED=true.',
-      );
+      console.warn('[db] TLS activo sin verificar el certificado. Si tu servidor tiene un CA válido, poné DATABASE_TLS_REJECT_UNAUTHORIZED=true.');
     }
     config.ssl = { rejectUnauthorized };
   }
@@ -63,7 +51,4 @@ function createPrisma() {
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrisma();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
+if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;

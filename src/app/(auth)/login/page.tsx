@@ -29,7 +29,7 @@ export default function LoginPage() {
           name="email"
           type="email"
           autoComplete="email"
-          placeholder="tu@minerva.cr"
+          placeholder="usuario@minervaconsultores.com"
         />
         <Field
           label="Contraseña"

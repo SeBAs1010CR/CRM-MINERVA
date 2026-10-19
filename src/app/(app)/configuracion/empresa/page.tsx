@@ -35,16 +35,13 @@ export default async function EmpresaPage() {
 
       {!empresa && (
         <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-          Falta la fila de configuración: corré <code className="font-mono">npm run db:seed</code>{' '}
-          para crearla antes de guardar.
+          Aún no existe la fila de configuración: al guardar se crea con estos valores.
         </p>
       )}
 
-      {empresa && (
-        <div className="rounded-lg border border-minerva-border bg-minerva-white p-6 shadow-sm">
-          <EmpresaForm valores={valores} />
-        </div>
-      )}
+      <div className="rounded-lg border border-minerva-border bg-minerva-white p-6 shadow-sm">
+        <EmpresaForm valores={valores} />
+      </div>
     </div>
   );
 }

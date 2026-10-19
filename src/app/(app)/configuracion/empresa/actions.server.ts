@@ -41,9 +41,8 @@ const empresaSchema = z.object({
  * documento, más los valores por defecto con los que se prellenan las
  * cotizaciones nuevas (RF-079, RF-087, RF-089, RF-090).
  *
- * Se escribe sobre la fila singleton en vez de `upsert`: el seed la crea y el
- * form nunca pide un id, así que un upsert solo serviría para esconder un
- * borrado accidental de la fila.
+ * Usa `upsert` sobre el id fijo `singleton`: así, si la fila todavía no existe
+ * (base nueva o seed nunca corrido), el primer guardado la crea.
  */
 export async function saveCompanySettingsAction(
   _prev: SettingsState,
@@ -88,7 +87,7 @@ export async function saveCompanySettingsAction(
     quotationPrefix: parsed.data.quotationPrefix.toUpperCase(),
   };
 
-  await prisma.companySetting.update({ where: { id: 'singleton' }, data: datos });
+  await prisma.companySetting.upsert({ where: { id: 'singleton' }, update: datos, create: { id: 'singleton', ...datos } });
 
   // La página de configuración y el listado se releen; el documento se dibuja en
   // cada visita, así que no necesita revalidación propia.

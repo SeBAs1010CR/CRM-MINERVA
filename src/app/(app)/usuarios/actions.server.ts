@@ -106,7 +106,9 @@ const updateSchema = z.object({
   firstName: z.string().trim().min(1, 'El nombre es obligatorio').max(100),
   lastName: z.string().trim().min(1, 'El apellido es obligatorio').max(100),
   phone: z.string().trim().max(30).optional(),
-  roleId: roleSchema,
+  // Opcional: si el select del rol viene deshabilitado no se envía y el campo
+  // llega null. En ese caso se conserva el rol actual (ver abajo).
+  roleId: roleSchema.optional(),
 });
 
 /** RF-007: modificar la información de un usuario. */
@@ -122,13 +124,13 @@ export async function updateUserAction(
     firstName: formData.get('firstName'),
     lastName: formData.get('lastName'),
     phone: formData.get('phone') || undefined,
-    roleId: formData.get('roleId'),
+    roleId: formData.get('roleId') || undefined,
   });
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message ?? 'Datos inválidos' };
   }
 
-  const { id, email, firstName, lastName, phone, roleId } = parsed.data;
+  const { id, email, firstName, lastName, phone } = parsed.data;
 
   const target = await prisma.user.findUnique({
     where: { id },
@@ -136,6 +138,8 @@ export async function updateUserAction(
   });
   if (!target) return { error: 'Usuario no encontrado.' };
 
+  // Sin roleId en el submit se mantiene el rol que ya tenía el usuario.
+  const roleId = parsed.data.roleId ?? target.roleId;
   const role = await prisma.role.findUnique({ where: { id: roleId } });
   if (!role || !role.isActive) return { error: 'Elegí un rol válido.' };
 

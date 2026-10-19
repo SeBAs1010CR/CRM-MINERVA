@@ -56,28 +56,42 @@ async function seed() {
   console.info(`[seed] Roles listos: ${roles.length}`);
 
   // --- RF-01: usuarios (RF-006, RF-009) -------------------------------------
-  // Sin id explícito: nada referencia a un usuario por literal, siempre por el
-  // objeto devuelto. Asi el seed funciona igual sobre una base nueva o una que
-  // ya traia usuarios de un seed anterior con ids distintos.
-  const users = await Promise.all(
-    (
-      [
-        { email: 'admin@minerva.cr', firstName: 'Ana', lastName: 'Rojas', roleId: roleByKey.admin.id },
-        { email: 'comercial@minerva.cr', firstName: 'Luis', lastName: 'Vargas', roleId: roleByKey.comercial.id },
-        { email: 'consulta@minerva.cr', firstName: 'Marta', lastName: 'Jiménez', roleId: roleByKey.consulta.id },
-        { email: 'demo@minerva.cr', firstName: 'Diego', lastName: 'Castro', roleId: roleByKey.comercial.id },
-      ] as const
-    ).map((u) =>
-      prisma.user.upsert({
-        where: { email: u.email },
-        update: { passwordHash, roleId: u.roleId, isActive: true },
-        create: { ...u, passwordHash, phone: '+506 8000 0000', isActive: true },
-      }),
-    ),
+  // En una base que ya tiene usuarios (producción) el seed NO crea usuarios de
+  // demo: solo reutiliza uno administrador y uno no-administrador para ser
+  // dueños de los registros de ejemplo. En una base vacía (dev) crea los
+  // usuarios demo de siempre con la contraseña fija del seed.
+  const existingUsers = await prisma.user.findMany({
+    where: { isActive: true },
+    orderBy: { createdAt: 'asc' },
+  });
+  let users: typeof existingUsers;
+  if (existingUsers.length > 0) {
+    users = existingUsers;
+  } else {
+    users = await Promise.all(
+      (
+        [
+          { email: 'admin@minerva.cr', firstName: 'Ana', lastName: 'Rojas', roleId: roleByKey.admin.id },
+          { email: 'comercial@minerva.cr', firstName: 'Luis', lastName: 'Vargas', roleId: roleByKey.comercial.id },
+          { email: 'consulta@minerva.cr', firstName: 'Marta', lastName: 'Jiménez', roleId: roleByKey.consulta.id },
+          { email: 'demo@minerva.cr', firstName: 'Diego', lastName: 'Castro', roleId: roleByKey.comercial.id },
+        ] as const
+      ).map((u) =>
+        prisma.user.upsert({
+          where: { email: u.email },
+          update: { passwordHash, roleId: u.roleId, isActive: true },
+          create: { ...u, passwordHash, phone: '+506 8000 0000', isActive: true },
+        }),
+      ),
+    );
+  }
+  const admin = users.find((u) => u.roleId === roleByKey.admin.id) ?? users[0];
+  const comercial = users.find((u) => u.roleId === roleByKey.comercial.id) ?? users[1] ?? admin;
+  console.info(
+    existingUsers.length > 0
+      ? `[seed] Base con ${existingUsers.length} usuarios: se reutilizan como dueños del demo.`
+      : `[seed] Usuarios listos: ${users.length}`,
   );
-  const admin = users[0];
-  const comercial = users[1];
-  console.info(`[seed] Usuarios listos: ${users.length}`);
 
   // --- RF-09: datos de la empresa que imprime (RF-097, RF-101) --------------
   await prisma.companySetting.upsert({
